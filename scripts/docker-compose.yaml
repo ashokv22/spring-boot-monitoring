@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  #nginx-app:
+  #  container_name: nginx-app
+  #  image: nginx
+  #  labels:
+  #    logging: "promtail"
+  #    logging_jobname: "containerlogs"
+  #  ports:
+  #    - 8081:80
+  #  networks:
+  #    - app
+
+  #test-app:
+  #  image: alpine:latest
+  #  command: tail -f /dev/null  # Keep the container running as a placeholder
+  #  labels:
+  #    logging: "promtail"
+  #    logging_jobname: "containerlogs"
+  #  networks:
+  #    - app
+  #  volumes:
+  #    - /vol/software/application/deployables/logs/stdout.log:/app/logs/stdout.log
+  #    - /vol/software/application/deployables/logs/stderr.log:/app/logs/stdouterror.log
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - ./datasource.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+        #  environment:
+      #    - GF_AUTH_ANONYMOUS_ENABLED=true
+      #    - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      #    - GF_AUTH_DISABLE_LOGIN_FORM=true
+    networks:
+      - app
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+    networks:
+      - app
+
+  #loki:
+  #  image: grafana/loki:latest
+  #  ports:
+  #    - 3100:3100
+  #  command: -config.file=/etc/loki/local-config.yaml
+  #  networks:
+  #    - app
+
+ # promtail:
+ #   image:  grafana/promtail:latest
+ #   container_name: promtail
+ #   volumes:
+ #     - ./docker-config.yaml:/etc/promtail/docker-config.yaml
+ #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
+ #     - /var/run/docker.sock:/var/run/docker.sock
+ #   command: |
+ #       -config.file=/etc/promtail/docker-config.yaml
+ #       -config.expand-env=true
+ #   depends_on:
+ #     - loki
+ #   networks:
+ #     - app
+
+networks:
+  app:
+    name: app
